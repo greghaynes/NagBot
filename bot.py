@@ -41,6 +41,7 @@ class Victim(object):
 		pass
 
 class Nagger(object):
+	"""Sends nags to victims"""
 	def __init__(self, bot):
 		self.bot = bot
 		self.victims = {}
@@ -52,9 +53,8 @@ class Nagger(object):
 		except KeyError:
 			self.victims[victim.keyword] = [victim]
 
-	def handleMessage(self, sender, reciever, message):
-		"""Called for each message seen"""
-		pass
+	def fromString(self, string):
+		self.victims = json.JSONEncoder().encode(string)
 
 	def toString(self):
 		"""Serialize the nagger"""
@@ -67,9 +67,37 @@ class Nagger(object):
 			serial_victims[key] = serial_values
 		return json.dumps(serial_victims)
 
+class NagController(object):
+	"""Manages commands to nagbot"""
+	def __init__(self, bot):
+		self.bot = bot
+
+class NagBotMessageHandler(object):
+	def __init__(self, bot):
+		self.bot = bot
+		self.bot_re = re.compile('^' + bot.nickname)
+
+	def handleMessage(self, sender, receiver, message):
+		if receiver == self.bot.nickname or self.bot_re.match(message):
+			"""Message to the bot"""
+			message = message[message.find(' ')+1:]
+			handleMessageToBot(sender, message)
+		else:
+			handlePublicMessage(sender, message)
+
+	def handleMessageToBot(self, sender, message):
+		pass
+
+	def handlePublicMessage(self, sender, mesage):
+		pass
+		
+
 class NagBot(irc.IRCClient):
 	"""A bot that sends notifications based on irc message regexes"""
 	nickname = "nagbot"
+
+	def __init__(self):
+		self.message_handler = NagBotMessageHandler(self)
 
 	def connectionMade(self):
 		irc.IRCClient.connectionMade(self)
@@ -86,7 +114,13 @@ class NagBot(irc.IRCClient):
 		"""This will get called when the bot joins the channel."""
 		self.say(channel, "Hello!")
 
+	def irc_PRIVMSG(self, prefix, params):
+		self.message_handler.handleMessage(prefix, params[0], params[1])
+
 class NagBotFactory(protocol.ClientFactory):
+	protocol = NagBot
+	channels = ('#nagbot',)
+
 	def __init__(self, configpath):
 		self.config = ConfigParser.ConfigParser()
 		self.config.read(configpath)
@@ -98,7 +132,7 @@ class NagBotFactory(protocol.ClientFactory):
 if __name__ == '__main__':
 	# create factory protocol and application
 	try:
-		f = NagBotFactory((sys.argv[1],))
+		f = NagBotFactory('test.conf')
 	except IndexError:
 		print 'Supply the path to a valid config file as an argument'
 	else:
