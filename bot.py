@@ -67,30 +67,31 @@ class Nagger(object):
 			serial_victims[key] = serial_values
 		return json.dumps(serial_victims)
 
+	def handlePublicMessage(self, sender, receiver, mesage):
+		pass
+		
 class NagController(object):
 	"""Manages commands to nagbot"""
 	def __init__(self, bot):
 		self.bot = bot
 
+	def handleMessageToBot(self, sender, receiver, message, isPrivate):
+		pass
+
 class NagBotMessageHandler(object):
 	def __init__(self, bot):
 		self.bot = bot
 		self.bot_re = re.compile('^' + bot.nickname)
+		self.controller = NagController(bot)
+		self.nagger = Nagger(bot)
 
 	def handleMessage(self, sender, receiver, message):
 		if receiver == self.bot.nickname or self.bot_re.match(message):
 			"""Message to the bot"""
 			message = message[message.find(' ')+1:]
-			handleMessageToBot(sender, message)
+			self.controller.handleMessageToBot(sender, receiver, message, receiver == self.bot.nickname)
 		else:
-			handlePublicMessage(sender, message)
-
-	def handleMessageToBot(self, sender, message):
-		pass
-
-	def handlePublicMessage(self, sender, mesage):
-		pass
-		
+			self.nagger.handlePublicMessage(sender, receiver, message)
 
 class NagBot(irc.IRCClient):
 	"""A bot that sends notifications based on irc message regexes"""
