@@ -9,6 +9,7 @@ class NagController(object):
 			'part': (self.command_PART, True),
 			'rainbow': (self.command_RAINBOW, False),
 			'say': (self.command_SAY, True),
+			'help': (self.command_HELP, False),
 			}
 		self.admins = {
 			'greghaynes': None,
@@ -74,4 +75,10 @@ class NagController(object):
 
 	def command_SAY(self, sender, receiver, cmd, message, isPrivate):
 		self.bot.say(receiver, message)
+
+	def command_HELP(self, sender, receiver, cmd, message, isPrivate):
+		response = 'Available commands: '
+		for cmd in self.command_handlers.keys():
+			response += cmd + ' '
+		self.respondWith(sender, receiver, response)
 
