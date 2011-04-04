@@ -57,7 +57,6 @@ class Nagger(object):
 			serial_victims[key] = serial_values
 		return json.dumps(serial_victims)
 
-	def handlePublicMessage(self, sender, receiver, mesage):
+	def handlePublicMessage(self, sender, receiver, message):
 		pass
-		
 

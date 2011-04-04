@@ -1,5 +1,5 @@
 from twisted.words.protocols import irc
-from twisted.internet import reactor, protocol
+from twisted.internet import ssl, reactor, protocol
 from twisted.internet.error import DNSLookupError
 from twisted.python import log
 
@@ -10,11 +10,14 @@ import sys
 import ConfigParser
 import re
 import json
+import random
+
+nicks = open('names.txt')
 
 class NagBotMessageHandler(object):
 	def __init__(self, bot):
 		self.bot = bot
-		self.bot_re = re.compile('^' + bot.nickname)
+		self.bot_re = re.compile('^' + self.bot.nickname)
 		self.controller = NagController(bot)
 		self.nagger = Nagger(bot)
 
@@ -28,6 +31,7 @@ class NagBotMessageHandler(object):
 
 class NagBot(irc.IRCClient):
 	"""A bot that sends notifications based on irc message regexes"""
+
 	nickname = "nagbot"
 
 	def __init__(self):
@@ -35,6 +39,7 @@ class NagBot(irc.IRCClient):
 
 	def connectionMade(self):
 		irc.IRCClient.connectionMade(self)
+		#self.msg('nickserv', 'identify 64698cbdfc')
 
 	def connectionLost(self, reason):
 		irc.IRCClient.connectionLost(self, reason)
@@ -46,14 +51,14 @@ class NagBot(irc.IRCClient):
 
 	def joined(self, channel):
 		"""This will get called when the bot joins the channel."""
-		self.say(channel, "Hello!")
+		self.say(channel, "\x034Hello!")
 
 	def irc_PRIVMSG(self, prefix, params):
 		self.message_handler.handleMessage(prefix, params[0], params[1])
 
 class NagBotFactory(protocol.ClientFactory):
 	protocol = NagBot
-	channels = ('#nagbot',)
+	channels = ('#cs305',)
 
 	def __init__(self, configpath):
 		self.config = ConfigParser.ConfigParser()
@@ -70,6 +75,7 @@ if __name__ == '__main__':
 	except IndexError:
 		print 'Supply the path to a valid config file as an argument'
 	else:
-		reactor.connectTCP("irc.cat.pdx.edu", 6667, f)
+		for i in range(1):
+			reactor.connectSSL("irc.cat.pdx.edu", 6697, f, ssl.ClientContextFactory())
 		reactor.run()
 
