@@ -39,7 +39,6 @@ class NagBot(irc.IRCClient):
 
 	def connectionMade(self):
 		irc.IRCClient.connectionMade(self)
-		#self.msg('nickserv', 'identify 64698cbdfc')
 
 	def connectionLost(self, reason):
 		irc.IRCClient.connectionLost(self, reason)
